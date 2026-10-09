@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard-home
+  labels:
+    app: adguard-home
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: adguard-home
+  template:
+    metadata:
+      labels:
+        app: adguard-home
+    spec:
+      containers:
+      - name: adguard-home
+        image: adguard/adguardhome:v0.107.68
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: dns-tcp
+          containerPort: 53
+          protocol: TCP
+        - name: dns-udp
+          containerPort: 53
+          protocol: UDP
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        - name: setup
+          containerPort: 3000
+          protocol: TCP
+        volumeMounts:
+        - name: work
+          mountPath: /opt/adguardhome/work
+        - name: conf
+          mountPath: /opt/adguardhome/conf
+        readinessProbe:
+          exec:
+            command: ["/bin/sh", "-c", "nc -z 127.0.0.1 3000 || nc -z 127.0.0.1 80"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["/bin/sh", "-c", "nc -z 127.0.0.1 3000 || nc -z 127.0.0.1 80"]
+          initialDelaySeconds: 20
+          periodSeconds: 20
+      volumes:
+      - name: work
+        persistentVolumeClaim:
+          claimName: adguard-home-work-pvc
+      - name: conf
+        persistentVolumeClaim:
+          claimName: adguard-home-conf-pvc
