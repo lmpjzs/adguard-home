@@ -40,14 +40,16 @@ spec:
           mountPath: /opt/adguardhome/conf
         readinessProbe:
           exec:
-            command: ["/bin/sh", "-c", "nc -z 127.0.0.1 3000 || nc -z 127.0.0.1 80"]
+            command: ["/bin/sh", "-c", "nc -z 127.0.0.1 3000 || nc -z ::1 3000 || nc -z 127.0.0.1 80 || nc -z ::1 80"]
           initialDelaySeconds: 5
           periodSeconds: 10
+          timeoutSeconds: 3
         livenessProbe:
           exec:
-            command: ["/bin/sh", "-c", "nc -z 127.0.0.1 3000 || nc -z 127.0.0.1 80"]
+            command: ["/bin/sh", "-c", "nc -z 127.0.0.1 3000 || nc -z ::1 3000 || nc -z 127.0.0.1 80 || nc -z ::1 80"]
           initialDelaySeconds: 20
           periodSeconds: 20
+          timeoutSeconds: 3
       volumes:
       - name: work
         persistentVolumeClaim:
